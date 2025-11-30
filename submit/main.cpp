@@ -40,7 +40,6 @@ public: // Constructor
 		__keys_[0] = key;
 		__size_ = 1;
 		for (size_type i = 0; i <= M; i++) __children_[i] = 0;
-		__isLeaf_ = true;
 	}
 
 
@@ -301,7 +300,7 @@ std::pair<Node<_Tp, M>*, bool> __insertBT(Node<_Tp, M>*& __root, const _Tp& __ke
 template <class _Tp, std::size_t M> 
 void __deleteKey(Node<_Tp, M>* __x, const _Tp& __oldKey) {
 
-	int i = 0;
+	std::size_t i = 0;
 	while (__oldKey > __x->__keys_[i]) {	// 삭제할 노드의 위치를 찾고
 		i++;
 	}
@@ -318,7 +317,7 @@ void __deleteKey(Node<_Tp, M>* __x, const _Tp& __oldKey) {
 // bsetSibling 구현 
 template <class _Tp, std::size_t M>
 int __bestSibling(Node<_Tp, M>* __x, Node<_Tp, M>* __y) {
-	int i = 0;
+	std::size_t i = 0; // int로 하면 오류 발생, 아마도 size_t가 양수만 타입을 업격하게 검사할때 오류가 발생하는거 같다. 
 
 	while (__y->__children_[i] != __x) {
 		i++;
@@ -380,7 +379,7 @@ void __redistributeKeys(Node<_Tp, M>* __x, Node<_Tp, M>* __y, int __bestSib) {
 template <class _Tp, std::size_t M>
 Node<_Tp, M>* __mergeNode(Node<_Tp, M>* __x, Node<_Tp, M>* __y, int __bestSib)
 {
-	int i = 0;
+	std::size_t i = 0;
 
 	while (i <= __y->size() && __y->__children_[i] != __x) i++;
 
@@ -405,7 +404,7 @@ Node<_Tp, M>* __mergeNode(Node<_Tp, M>* __x, Node<_Tp, M>* __y, int __bestSib)
 	bestNode->size()++;
 
 	// x 노드의 내용 bestNode에 붙여 넣는다. 
-	for (int j = 0; j < __x->size(); j++) {
+	for (std::size_t j = 0; j < __x->size(); j++) {
 		bestNode->__keys_[bestNode->size()] = __x->__keys_[j];
 		bestNode->__children_[bestNode->size()] = __x->__children_[j];
 		bestNode->size()++;
@@ -556,7 +555,7 @@ public: // Modifier
 * 반드시 아래의 main 함수를 사용해야할 필요는 없습니다.
 * ❗️새로 구현하실 경우, 출력 형식에 주의하세요.❗️
 */
-int main(int argc, char** argv) {
+int main() {
 	BT<int>	tree;
 	char	command;
 	int		key;
