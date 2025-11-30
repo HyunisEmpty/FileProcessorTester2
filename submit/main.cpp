@@ -8,7 +8,7 @@
 */
 
 #include <iostream>
-#include <stack> // 해당 라이브러리 사용가능 하다고 답변 받음
+#include <stack> // 해당 라이브러리 사용 여부 질문 해둔 상태
 
 template <class _Tp, std::size_t M = 4> class Node;
 template <class _Tp, std::size_t M = 4> class BT;
@@ -35,13 +35,9 @@ public: // Constructor
 			__children_[i] = nullptr;
 		}
 	}                                   // 키 하나를 받는 생성자
-	Node(const __key_type& key)
-	{
-		__keys_[0] = key;
-		__size_ = 1;
-		for (size_type i = 0; i <= M; i++) __children_[i] = 0;
+	Node(const __key_type& key) : Node() {
+		__push_front(key, nullptr);
 	}
-
 
 public: // Modifier
 	void __push_front(const __key_type& __key, const __node_pointer& __np) {
@@ -192,8 +188,8 @@ template <class _Tp, std::size_t M>
 std::pair<_Tp, Node<_Tp, M>*> __splitNode(Node<_Tp, M>* __x, Node<_Tp, M>* __y, const _Tp& __newKey)
 {
 	// M 기반 temporary 배열 생성
-	_Tp tempKeys[M + 1];
-	Node<_Tp, M>* tempChildren[M + 2];
+	_Tp tempKeys[M];
+	Node<_Tp, M>* tempChildren[M + 1];
 
 	int n = __x->size();
 
@@ -236,7 +232,7 @@ std::pair<_Tp, Node<_Tp, M>*> __splitNode(Node<_Tp, M>* __x, Node<_Tp, M>* __y, 
 	}
 	right->__children_[idx] = tempChildren[n];
 
-	return std::make_pair(centerKey, right);
+	return { centerKey, right };
 }
 
 // insertBT 구현
@@ -297,15 +293,15 @@ std::pair<Node<_Tp, M>*, bool> __insertBT(Node<_Tp, M>*& __root, const _Tp& __ke
 }
 
 // deleteKey 구현
-template <class _Tp, std::size_t M> 
+template <class _Tp, std::size_t M>
 void __deleteKey(Node<_Tp, M>* __x, const _Tp& __oldKey) {
 
-	std::size_t i = 0;
+	int i = 0;
 	while (__oldKey > __x->__keys_[i]) {	// 삭제할 노드의 위치를 찾고
 		i++;
 	}
 
-	while (i < __x->size() - 1) {				// 삭제할 노드의 오른쪽에 있는 노드들을 한 칸씩 왼쪽으로 옮긴다.
+	while (i < __x->size()) {				// 삭제할 노드의 오른쪽에 있는 노드들을 한 칸씩 왼쪽으로 옮긴다.
 		__x->__keys_[i] = __x->__keys_[i + 1];
 		__x->__children_[i + 1] = __x->__children_[i + 2];
 		i++;
@@ -317,7 +313,7 @@ void __deleteKey(Node<_Tp, M>* __x, const _Tp& __oldKey) {
 // bsetSibling 구현 
 template <class _Tp, std::size_t M>
 int __bestSibling(Node<_Tp, M>* __x, Node<_Tp, M>* __y) {
-	std::size_t i = 0; // int로 하면 오류 발생, 아마도 size_t가 양수만 타입을 업격하게 검사할때 오류가 발생하는거 같다. 
+	int i = 0;
 
 	while (__y->__children_[i] != __x) {
 		i++;
@@ -334,52 +330,52 @@ int __bestSibling(Node<_Tp, M>* __x, Node<_Tp, M>* __y) {
 	// 동생, 형 둘다 있으면 키 많은 형제 인덱스 반환
 	else if (__y->__children_[i - 1]->size() >= __y->__children_[i + 1]->size()) {
 		return i - 1;
-	} 
+	}
 	return i + 1;
 }
 
 // redistributeKeys 구현
-template <class _Tp, std::size_t M> 
-void __redistributeKeys(Node<_Tp, M>* __x, Node<_Tp, M>* __y, std::size_t __bestSib) {
-	 int i = 0;
-	 while (__y->__children_[i] != __x) {
-		 i++;
-	 }
+template <class _Tp, std::size_t M>
+void __redistributeKeys(Node<_Tp, M>* __x, Node<_Tp, M>* __y, int __bestSib) {
+	int i = 0;
+	while (__y->__children_[i] != __x) {
+		i++;
+	}
 
-	 Node<_Tp, M>* bestNode = __y->__children_[__bestSib];
+	Node<_Tp, M>* bestNode = __y->__children_[__bestSib];
 
-	 if (__bestSib < i) {	// 왼쪽 형제에서 키를 빌려오는 경우 
+	if (__bestSib < i) {	// 왼쪽 형제에서 키를 빌려오는 경우 
 
-		 _Tp lastKey = bestNode->__keys_[bestNode->size() - 1];		// 형제 마지막 키
-		 __insertKey<_Tp, M>(__x, nullptr, __y->__keys_[i - 1]);	// 부모키를 내 앞으로
+		_Tp lastKey = bestNode->__keys_[bestNode->size() - 1];		// 형제 마지막 키
+		__insertKey<_Tp, M>(__x, nullptr, __y->__keys_[i - 1]);	// 부모키를 내 앞으로
 
-		 // 자식 포인터 정리
-		 __x->__children_[1] = __x->__children_[0];						
-		 __x->__children_[0] = bestNode->__children_[bestNode->size()];	
-		 bestNode->__children_[bestNode->size()] = nullptr;
+		// 자식 포인터 정리
+		__x->__children_[1] = __x->__children_[0];
+		__x->__children_[0] = bestNode->__children_[bestNode->size()];
+		bestNode->__children_[bestNode->size()] = nullptr;
 
-		 __deleteKey<_Tp, M>(bestNode, lastKey);	// 형제에게서 부모로 올라갈 키를 제거한다. 
-		 __y->__keys_[i - 1] = lastKey;				// 부모의 키를 형제에게서 받은 키로 변경한다.
-	 }
-	 else{					// 오른쪽 형제에서 키를 빌려오는 경우 
-		 _Tp firstKey = bestNode->__keys_[0];					// 형제의 첫번째 키
-		 __insertKey<_Tp, M>(__x, nullptr, __y->__keys_[i]);	// 부모키를 내 뒤로
+		__deleteKey<_Tp, M>(bestNode, lastKey);	// 형제에게서 부모로 올라갈 키를 제거한다. 
+		__y->__keys_[i - 1] = lastKey;				// 부모의 키를 형제에게서 받은 키로 변경한다.
+	}
+	else {					// 오른쪽 형제에서 키를 빌려오는 경우 
+		_Tp firstKey = bestNode->__keys_[0];					// 형제의 첫번째 키
+		__insertKey<_Tp, M>(__x, nullptr, __y->__keys_[i]);	// 부모키를 내 뒤로
 
-		 // 자식 포인터 정리
-		 __x->__children_[__x->size()] = bestNode->__children_[0];
-		 bestNode->__children_[0] = bestNode->__children_[1];
-		
-		 __deleteKey<_Tp, M>(bestNode, firstKey);	// 형제에게서 부모로 올라갈 키를 제거한다. 
-		 __y->__keys_[i] = firstKey;				// 부모의 키를 형제에게서 받은 키로 변경한다.
-	 }
+		// 자식 포인터 정리
+		__x->__children_[__x->size()] = bestNode->__children_[0];
+		bestNode->__children_[0] = bestNode->__children_[1];
 
- }
+		__deleteKey<_Tp, M>(bestNode, firstKey);	// 형제에게서 부모로 올라갈 키를 제거한다. 
+		__y->__keys_[i] = firstKey;				// 부모의 키를 형제에게서 받은 키로 변경한다.
+	}
+
+}
 
 // mergeNode 구현
 template <class _Tp, std::size_t M>
-Node<_Tp, M>* __mergeNode(Node<_Tp, M>* __x, Node<_Tp, M>* __y, std::size_t __bestSib)
+Node<_Tp, M>* __mergeNode(Node<_Tp, M>* __x, Node<_Tp, M>* __y, int __bestSib)
 {
-	std::size_t i = 0;
+	int i = 0;
 
 	while (i <= __y->size() && __y->__children_[i] != __x) i++;
 
@@ -404,7 +400,7 @@ Node<_Tp, M>* __mergeNode(Node<_Tp, M>* __x, Node<_Tp, M>* __y, std::size_t __be
 	bestNode->size()++;
 
 	// x 노드의 내용 bestNode에 붙여 넣는다. 
-	for (std::size_t j = 0; j < __x->size(); j++) {
+	for (int j = 0; j < __x->size(); j++) {
 		bestNode->__keys_[bestNode->size()] = __x->__keys_[j];
 		bestNode->__children_[bestNode->size()] = __x->__children_[j];
 		bestNode->size()++;
@@ -419,17 +415,17 @@ Node<_Tp, M>* __mergeNode(Node<_Tp, M>* __x, Node<_Tp, M>* __y, std::size_t __be
 }
 
 template <class _Tp, std::size_t M>
-const Node<_Tp, M>* __eraseBT(Node<_Tp, M>*& __root, const _Tp& __key){
+const Node<_Tp, M>* __eraseBT(Node<_Tp, M>*& __root, const _Tp& __key) {
 
 	std::stack<Node<_Tp, M>*> __stack;		// 경로 저장용 스택
 	bool found = __searchPath<_Tp, M>(__root, __key, __stack);	// 삽입할 키의 중복 여부를 반환 키가 있으면 True, 없으면 False -> 삭제 에서는 false면 안된다.
 
-	if (found == false || __stack.empty()){	// 삭제할 키가 없다면 즉시 종료
+	if (found == false || __stack.empty()) {	// 삭제할 키가 없다면 즉시 종료
 		return nullptr;
 	}
 
-	Node<_Tp, M>* __x =	__stack.top(); __stack.pop();	// 삭제할 키가 있는 노드
-	Node<_Tp, M>* __y = nullptr;						
+	Node<_Tp, M>* __x = __stack.top(); __stack.pop();	// 삭제할 키가 있는 노드
+	Node<_Tp, M>* __y = nullptr;
 
 	int i = 0;
 	while (__x->__keys_[i] != __key) {
@@ -452,7 +448,7 @@ const Node<_Tp, M>* __eraseBT(Node<_Tp, M>*& __root, const _Tp& __key){
 
 		__x = __stack.top();
 		__stack.pop();
-		
+
 		// 교체할 노드와 값 교환
 		_Tp temp = internalNode->__keys_[i];
 		internalNode->__keys_[i] = __x->__keys_[0];
@@ -464,7 +460,7 @@ const Node<_Tp, M>* __eraseBT(Node<_Tp, M>*& __root, const _Tp& __key){
 
 	if (!__stack.empty()) {	// __X(키를 삭제한 노드)의 부모노드 __y설정
 		__y = __stack.top(), __stack.pop();
-	} 
+	}
 
 	do {
 		if (__x == __root || __x->size() >= (M - 1) / 2) {	// Root이거나, Underflow가 아닌 경우
@@ -555,7 +551,7 @@ public: // Modifier
 * 반드시 아래의 main 함수를 사용해야할 필요는 없습니다.
 * ❗️새로 구현하실 경우, 출력 형식에 주의하세요.❗️
 */
-int main() {
+int main(int argc, char** argv) {
 	BT<int>	tree;
 	char	command;
 	int		key;
