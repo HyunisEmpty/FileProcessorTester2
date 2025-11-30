@@ -192,8 +192,8 @@ template <class _Tp, std::size_t M>
 std::pair<_Tp, Node<_Tp, M>*> __splitNode(Node<_Tp, M>* __x, Node<_Tp, M>* __y, const _Tp& __newKey)
 {
 	// M 기반 temporary 배열 생성
-	_Tp tempKeys[M];
-	Node<_Tp, M>* tempChildren[M + 1];
+	_Tp tempKeys[M + 1];
+	Node<_Tp, M>* tempChildren[M + 2];
 
 	int n = __x->size();
 
@@ -305,7 +305,7 @@ void __deleteKey(Node<_Tp, M>* __x, const _Tp& __oldKey) {
 		i++;
 	}
 
-	while (i < __x->size()) {				// 삭제할 노드의 오른쪽에 있는 노드들을 한 칸씩 왼쪽으로 옮긴다.
+	while (i < __x->size() - 1) {				// 삭제할 노드의 오른쪽에 있는 노드들을 한 칸씩 왼쪽으로 옮긴다.
 		__x->__keys_[i] = __x->__keys_[i + 1];
 		__x->__children_[i + 1] = __x->__children_[i + 2];
 		i++;
@@ -340,7 +340,7 @@ int __bestSibling(Node<_Tp, M>* __x, Node<_Tp, M>* __y) {
 
 // redistributeKeys 구현
 template <class _Tp, std::size_t M> 
-void __redistributeKeys(Node<_Tp, M>* __x, Node<_Tp, M>* __y, int __bestSib) {
+void __redistributeKeys(Node<_Tp, M>* __x, Node<_Tp, M>* __y, std::size_t __bestSib) {
 	 int i = 0;
 	 while (__y->__children_[i] != __x) {
 		 i++;
@@ -377,7 +377,7 @@ void __redistributeKeys(Node<_Tp, M>* __x, Node<_Tp, M>* __y, int __bestSib) {
 
 // mergeNode 구현
 template <class _Tp, std::size_t M>
-Node<_Tp, M>* __mergeNode(Node<_Tp, M>* __x, Node<_Tp, M>* __y, int __bestSib)
+Node<_Tp, M>* __mergeNode(Node<_Tp, M>* __x, Node<_Tp, M>* __y, std::size_t __bestSib)
 {
 	std::size_t i = 0;
 
