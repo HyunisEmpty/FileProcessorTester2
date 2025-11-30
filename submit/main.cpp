@@ -8,7 +8,7 @@
 */
 
 #include <iostream>
-#include <stack> // 해당 라이브러리 사용 여부 질문 해둔 상태
+#include <stack> // 해당 라이브러리 사용가능 하다고 답변 받음
 
 template <class _Tp, std::size_t M = 4> class Node;
 template <class _Tp, std::size_t M = 4> class BT;
@@ -35,9 +35,14 @@ public: // Constructor
 			__children_[i] = nullptr;
 		}
 	}                                   // 키 하나를 받는 생성자
-	Node(const __key_type& key) : Node() {
-		__push_front(key, nullptr);
+	Node(const __key_type& key)
+	{
+		__keys_[0] = key;
+		__size_ = 1;
+		for (size_type i = 0; i <= M; i++) __children_[i] = 0;
+		__isLeaf_ = true;
 	}
+
 
 public: // Modifier
 	void __push_front(const __key_type& __key, const __node_pointer& __np) {
@@ -232,7 +237,7 @@ std::pair<_Tp, Node<_Tp, M>*> __splitNode(Node<_Tp, M>* __x, Node<_Tp, M>* __y, 
 	}
 	right->__children_[idx] = tempChildren[n];
 
-	return { centerKey, right };
+	return std::make_pair(centerKey, right);
 }
 
 // insertBT 구현
@@ -386,7 +391,7 @@ Node<_Tp, M>* __mergeNode(Node<_Tp, M>* __x, Node<_Tp, M>* __y, int __bestSib)
 
 		// 인덱스 교환
 		int tmp = i;
-		i = __baseSib;
+		i = __bestSib;
 		__bestSib = tmp;
 
 		// 노드 포인터 교환
