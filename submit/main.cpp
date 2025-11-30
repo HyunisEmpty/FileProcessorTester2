@@ -35,7 +35,10 @@ public: // Constructor
 			__children_[i] = nullptr;
 		}
 	}                                   // 키 하나를 받는 생성자
-	Node(const __key_type& key) : Node() {
+	Node(const __key_type& key) : __size_(0) { // 키 하나를 받는 생성자
+		for (size_type i = 0; i < M; i++) { // <-- 기본 생성자 내용 복사
+			__children_[i] = nullptr;
+		} // <-- 기본 생성자 내용 복사
 		__push_front(key, nullptr);
 	}
 
@@ -232,7 +235,7 @@ std::pair<_Tp, Node<_Tp, M>*> __splitNode(Node<_Tp, M>* __x, Node<_Tp, M>* __y, 
 	}
 	right->__children_[idx] = tempChildren[n];
 
-	return { centerKey, right };
+	return std::make_pair(centerKey, right);
 }
 
 // insertBT 구현
@@ -296,7 +299,7 @@ std::pair<Node<_Tp, M>*, bool> __insertBT(Node<_Tp, M>*& __root, const _Tp& __ke
 template <class _Tp, std::size_t M>
 void __deleteKey(Node<_Tp, M>* __x, const _Tp& __oldKey) {
 
-	int i = 0;
+	std::size_t i = 0;
 	while (__oldKey > __x->__keys_[i]) {	// 삭제할 노드의 위치를 찾고
 		i++;
 	}
@@ -313,7 +316,7 @@ void __deleteKey(Node<_Tp, M>* __x, const _Tp& __oldKey) {
 // bsetSibling 구현 
 template <class _Tp, std::size_t M>
 int __bestSibling(Node<_Tp, M>* __x, Node<_Tp, M>* __y) {
-	int i = 0;
+	std::size_t i = 0;
 
 	while (__y->__children_[i] != __x) {
 		i++;
@@ -375,7 +378,7 @@ void __redistributeKeys(Node<_Tp, M>* __x, Node<_Tp, M>* __y, int __bestSib) {
 template <class _Tp, std::size_t M>
 Node<_Tp, M>* __mergeNode(Node<_Tp, M>* __x, Node<_Tp, M>* __y, int __bestSib)
 {
-	int i = 0;
+	std::size_t i = 0;
 
 	while (i <= __y->size() && __y->__children_[i] != __x) i++;
 
@@ -400,7 +403,7 @@ Node<_Tp, M>* __mergeNode(Node<_Tp, M>* __x, Node<_Tp, M>* __y, int __bestSib)
 	bestNode->size()++;
 
 	// x 노드의 내용 bestNode에 붙여 넣는다. 
-	for (int j = 0; j < __x->size(); j++) {
+	for (std::size_t j = 0; j < __x->size(); j++) {
 		bestNode->__keys_[bestNode->size()] = __x->__keys_[j];
 		bestNode->__children_[bestNode->size()] = __x->__children_[j];
 		bestNode->size()++;
@@ -551,7 +554,8 @@ public: // Modifier
 * 반드시 아래의 main 함수를 사용해야할 필요는 없습니다.
 * ❗️새로 구현하실 경우, 출력 형식에 주의하세요.❗️
 */
-int main(int argc, char** argv) {
+// int argc, char** argv를 생략
+int main(int /*argc*/, char** /*argv*/) {
 	BT<int>	tree;
 	char	command;
 	int		key;
